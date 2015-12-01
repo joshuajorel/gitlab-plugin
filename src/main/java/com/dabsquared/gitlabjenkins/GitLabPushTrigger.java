@@ -384,7 +384,9 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                         	sourceRepoName = req.getSourceProject(getDesc().getGitlab()).getPathWithNamespace();
                         	sourceRepoURL = req.getSourceProject(getDesc().getGitlab()).getSshUrl();
                         } catch (IOException ex) {
-                        	LOGGER.log(Level.WARNING, "Could not fetch source project''s data from Gitlab. '('{0}':' {1}')'", new String[]{ex.toString(), ex.getMessage()});
+                            LOGGER.info("source repo name: "+ sourceRepoName);
+                            LOGGER.info("source repo url: "+ sourceRepoURL);
+                        	LOGGER.log(Level.WARNING, "Merge Request: Could not fetch source project''s data from Gitlab. '('{0}':' {1}')'", new String[]{ex.toString(), ex.getMessage()});
                         }
                     }
 
