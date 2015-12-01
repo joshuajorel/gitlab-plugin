@@ -391,6 +391,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
             if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
                 // Fetch and build open merge requests with the same source branch
+                LOGGER.info("Entering buildOpenMergeRequests");
                 buildOpenMergeRequests(trigger, request.getProject_id(), request.getRef());
             }
         } finally {
@@ -400,6 +401,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
     protected void buildOpenMergeRequests(GitLabPushTrigger trigger, Integer projectId, String projectRef) {
         try {
+            LOGGER.info("Entered buildOpenMergeRequests");
             GitLab api = new GitLab();
             List<GitlabMergeRequest> mergeRequests = api.instance().getOpenMergeRequests(projectId);
 
