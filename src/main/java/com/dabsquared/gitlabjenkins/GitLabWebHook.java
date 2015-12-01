@@ -150,6 +150,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         		Run build = this.getBuildByBranch(project, req.getParameter("ref"));
         		redirectToBuildPage(res, build);
         	} else {
+                LOGGER.log(Level.INFO, "generateBuild entered here (1)");
         		this.generateBuild(theString, project, req, res);           
         	}
         	throw HttpResponses.ok();
@@ -160,8 +161,11 @@ public class GitLabWebHook implements UnprotectedRootAction {
         if(lastPath.equals("status.json") && !firstPath.equals("!builds")) {
             String commitSHA1 = paths.get(1);
             this.generateStatusJSON(commitSHA1, project, req, res);
+
         } else if(lastPath.equals("build") || (lastPath.equals("status.json") && firstPath.equals("!builds"))) {
+            LOGGER.log(Level.INFO, "generateBuild entered here (2)");
             this.generateBuild(theString, project, req, res);
+
         } else if(lastPath.equals("status.png")) {
             String branch = req.getParameter("ref");
             String commitSHA1 = req.getParameter("sha1");
@@ -466,6 +470,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         }
         if("merged".equals(request.getObjectAttribute().getState())) {
             LOGGER.log(Level.INFO, "Accepted Merge Request, no build started");
+            this.generatePushBuild(json, project, req, rsp);
             return;
         }
         if("update".equals(request.getObjectAttribute().getAction())) {
