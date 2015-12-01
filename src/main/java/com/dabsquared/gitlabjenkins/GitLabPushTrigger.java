@@ -377,6 +377,8 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                     LOGGER.log(Level.INFO, "Trying to get name and URL for job: {0}", job.getName());
                     String sourceRepoName = getDesc().getSourceRepoNameDefault(job);
                     String sourceRepoURL = getDesc().getSourceRepoURLDefault(job).toString();
+                    LOGGER.info("source repo name before: "+ sourceRepoName);
+                    LOGGER.info("source repo url before: "+ sourceRepoURL);
 
                     if (!getDescriptor().getGitlabHostUrl().isEmpty()) {
                     	// Get source repository if communication to Gitlab is possible
