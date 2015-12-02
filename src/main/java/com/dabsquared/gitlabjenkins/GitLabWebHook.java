@@ -43,6 +43,7 @@ import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jgit.lib.ObjectId;
+import org.gitlab.api.GitlabAPI;
 import org.gitlab.api.models.GitlabBranch;
 import org.gitlab.api.models.GitlabCommit;
 import org.gitlab.api.models.GitlabMergeRequest;
@@ -399,16 +400,17 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
     protected void buildOpenMergeRequests(GitLabPushTrigger trigger, Integer projectId, String projectRef) {
         try {
-            LOGGER.info("Entered buildOpenMergeRequests");
-            GitLab api = new GitLab();
+            LOGGER.info("Entered buildOpenMergeRequests. Initializing Gitlab()");
+            GitlabAPI api = new GitLab().instance();
+            LOGGER.info("Gitlab() initialized");
             LOGGER.info("trigger open merge request on push: "+trigger.getTriggerOpenMergeRequestOnPush().toString());
             LOGGER.info("project id: "+ projectId);
             LOGGER.info("Looping all merge requests: ");
-            List<GitlabMergeRequest> testMR = api.instance().getOpenMergeRequests(projectId);
+            List<GitlabMergeRequest> testMR = api.getOpenMergeRequests(projectId);
             for(GitlabMergeRequest mergeRequest: testMR){
                 LOGGER.info(mergeRequest.getSourceBranch());
             }
-            List<GitlabMergeRequest> mergeRequests = api.instance().getOpenMergeRequests(projectId);
+            List<GitlabMergeRequest> mergeRequests = api.getOpenMergeRequests(projectId);
 
             LOGGER.info("Entering for loop");
             for (org.gitlab.api.models.GitlabMergeRequest mr : mergeRequests) {
@@ -420,7 +422,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
                         LOGGER.log(Level.INFO, "Skipping MR " + mr.getTitle() + " due to ci-skip.");
                         continue;
                     }
-                    GitlabBranch branch = api.instance().getBranch(api.instance().getProject(projectId), mr.getSourceBranch());
+                    GitlabBranch branch = api.getBranch(api.getProject(projectId), mr.getSourceBranch());
                     LastCommit lastCommit = new LastCommit();
                     lastCommit.setId(branch.getCommit().getId());
                     lastCommit.setMessage(branch.getCommit().getMessage());
