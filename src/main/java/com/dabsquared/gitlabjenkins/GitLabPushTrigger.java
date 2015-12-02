@@ -379,7 +379,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                     String sourceRepoName = sourceRepoNamespace + "/" + sourceRepoProjectName;
                     String sourceRepoURL = req.getObjectAttribute().getSource().getSsh_url();
                     /**
-                     *  unsure about this method
+                     *  unsure about this method -> seems useless since sourceRepoName and sourceRepoURL should already have the needed values
                      if (!getDescriptor().getGitlabHostUrl().isEmpty()) {
                      // Get source repository if communication to Gitlab is possible
                      try {
