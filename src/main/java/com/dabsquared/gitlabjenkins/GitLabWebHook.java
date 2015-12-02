@@ -470,8 +470,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
     protected void triggerBuildOpenMergeRequests(String json, com.dabsquared.gitlabjenkins.GitLabMergeRequest request, Job project, StaplerRequest req, StaplerResponse rsp) {
         try {
+            LOGGER.info(json);
             GitLabPushRequest testRequest = GitLabPushRequest.create(json);
             LOGGER.info("getRef() = " + testRequest.getRef());
+            LOGGER.info("testRequest = "+testRequest.toString());
         } catch (Exception exception) {
             LOGGER.warning("Exception occurred with message: " + exception.getMessage());
             exception.printStackTrace();
