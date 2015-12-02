@@ -354,6 +354,8 @@ public class GitLabWebHook implements UnprotectedRootAction {
         LOGGER.info("Entered generatePushBuild");
         GitLabPushRequest request = GitLabPushRequest.create(json);
         String repositoryUrl = request.getRepository().getUrl();
+        LOGGER.info("GitlabPushRequest URL: "+request.getRepository().getUrl());
+        LOGGER.info("repositoryUrl: "+repositoryUrl);
         if (repositoryUrl == null) {
 
             LOGGER.log(Level.WARNING, "No repository url found.");
@@ -363,7 +365,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         Authentication old = SecurityContextHolder.getContext().getAuthentication();
         SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
         try {
-
+            LOGGER.info("Entered first try block");
             GitLabPushTrigger trigger = null;
             if (project instanceof ParameterizedJobMixIn.ParameterizedJob) {
                 ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) project;
@@ -393,7 +395,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
                 LOGGER.info("Entering buildOpenMergeRequests");
                 buildOpenMergeRequests(trigger, request.getProject_id(), request.getRef());
             }
-        } finally {
+        } catch(Exception exception){
+            LOGGER.warning("Exception occurred with message: "+ exception.getMessage());
+            exception.printStackTrace();
+        } finally{
             SecurityContextHolder.getContext().setAuthentication(old);
         }
     }
