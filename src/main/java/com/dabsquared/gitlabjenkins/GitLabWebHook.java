@@ -351,13 +351,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
 
     public void generatePushBuild(String json, Job project, StaplerRequest req, StaplerResponse rsp) {
-        LOGGER.info("Entered generatePushBuild");
         GitLabPushRequest request = GitLabPushRequest.create(json);
         String repositoryUrl = request.getRepository().getUrl();
-        LOGGER.info("GitlabPushRequest URL: "+request.getRepository().getUrl());
-        LOGGER.info("repositoryUrl: "+repositoryUrl);
-        if (repositoryUrl == null) {
 
+        if (repositoryUrl == null) {
             LOGGER.log(Level.WARNING, "No repository url found.");
             return;
         }
@@ -392,37 +389,27 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
             if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
                 // Fetch and build open merge requests with the same source branch
-                LOGGER.info("Entering buildOpenMergeRequests");
                 buildOpenMergeRequests(trigger, request.getProject_id(), request.getRef());
             }
-        } catch(Exception exception){
-            LOGGER.warning("Exception occurred with message: "+ exception.getMessage());
+        } catch (Exception exception) {
+            LOGGER.warning("Exception occurred with message: " + exception.getMessage());
             exception.printStackTrace();
-        } finally{
+        } finally {
             SecurityContextHolder.getContext().setAuthentication(old);
         }
     }
 
     protected void buildOpenMergeRequests(GitLabPushTrigger trigger, Integer projectId, String projectRef) {
         try {
-            LOGGER.info("Entered buildOpenMergeRequests. Initializing Gitlab()");
             GitlabAPI api = new GitLab().instance();
-            LOGGER.info("Gitlab() initialized");
-            LOGGER.info("trigger open merge request on push: "+trigger.getTriggerOpenMergeRequestOnPush().toString());
-            LOGGER.info("project id: "+ projectId);
-            LOGGER.info("Looping all merge requests: ");
-            List<GitlabMergeRequest> testMR = api.getOpenMergeRequests(projectId);
-            for(GitlabMergeRequest mergeRequest: testMR){
-                LOGGER.info(mergeRequest.getSourceBranch());
-            }
+            LOGGER.info("trigger open merge request on push: " + trigger.getTriggerOpenMergeRequestOnPush().toString());
             List<GitlabMergeRequest> mergeRequests = api.getOpenMergeRequests(projectId);
 
-            LOGGER.info("Entering for loop");
             for (org.gitlab.api.models.GitlabMergeRequest mr : mergeRequests) {
+                LOGGER.info("mr.getSourceBranch() = " + mr.getSourceBranch());
+                LOGGER.info("mr.getTargetBranch() = " + mr.getTargetBranch());
                 if (projectRef.endsWith(mr.getSourceBranch()) ||
                         (trigger.getTriggerOpenMergeRequestOnPush().equals("both") && projectRef.endsWith(mr.getTargetBranch()))) {
-
-                    LOGGER.info("Entered first if statement");
                     if (trigger.getCiSkip() && mr.getDescription().contains("[ci-skip]")) {
                         LOGGER.log(Level.INFO, "Skipping MR " + mr.getTitle() + " due to ci-skip.");
                         continue;
@@ -470,6 +457,8 @@ public class GitLabWebHook implements UnprotectedRootAction {
                     } finally {
                         SecurityContextHolder.getContext().setAuthentication(old);
                     }
+                } else {
+                    LOGGER.info("Did not enter");
                 }
             }
         } catch (Exception e) {
@@ -479,11 +468,18 @@ public class GitLabWebHook implements UnprotectedRootAction {
         }
     }
 
-    protected void triggerBuildOpenMergeRequests(com.dabsquared.gitlabjenkins.GitLabMergeRequest request, Job project, StaplerRequest req, StaplerResponse rsp) {
+    protected void triggerBuildOpenMergeRequests(String json, com.dabsquared.gitlabjenkins.GitLabMergeRequest request, Job project, StaplerRequest req, StaplerResponse rsp) {
+        try {
+            GitLabPushRequest testRequest = GitLabPushRequest.create(json);
+            LOGGER.info("getRef() = " + testRequest.getRef());
+        } catch (Exception exception) {
+            LOGGER.warning("Exception occurred with message: " + exception.getMessage());
+            exception.printStackTrace();
+        }
+
         Authentication old = SecurityContextHolder.getContext().getAuthentication();
         SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
         try {
-            LOGGER.info("Entered first try block");
             GitLabPushTrigger trigger = null;
             if (project instanceof ParameterizedJobMixIn.ParameterizedJob) {
                 ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) project;
@@ -510,12 +506,13 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
             if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
                 // Fetch and build open merge requests with the same source branch
-                LOGGER.info("Entering buildOpenMergeRequests");
                 buildOpenMergeRequests(trigger, request.getObjectAttribute().getSourceProjectId(), request.getObjectAttribute().getTargetBranch());
             }
-        }catch(Exception exception){
-            LOGGER.warning("Exception occurred with message: "+exception.getMessage());
+        } catch (Exception exception) {
+            LOGGER.warning("Exception occurred with message: " + exception.getMessage());
             exception.printStackTrace();
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(old);
         }
     }
 
@@ -532,7 +529,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         if ("update".equals(request.getObjectAttribute().getAction())) {
             LOGGER.log(Level.INFO, "Existing Merge Request, build will be triggered by buildOpenMergeRequests instead");
             LOGGER.info("Calling triggerBuildOpenMergeRequests");
-            this.triggerBuildOpenMergeRequests(request, project, req, rsp);
+            this.triggerBuildOpenMergeRequests(json, request, project, req, rsp);
             return;
         }
         if (request.getObjectAttribute().getLastCommit() != null) {
