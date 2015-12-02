@@ -405,6 +405,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
             LOGGER.info("trigger open merge request on push: " + trigger.getTriggerOpenMergeRequestOnPush().toString());
             List<GitlabMergeRequest> mergeRequests = api.getOpenMergeRequests(projectId);
 
+            /**
+             * does not trigger because mergeRequests is empty
+             */
+            //TODO: investigate why mergeRequests is empty
             for (org.gitlab.api.models.GitlabMergeRequest mr : mergeRequests) {
                 LOGGER.info("mr.getSourceBranch() = " + mr.getSourceBranch());
                 LOGGER.info("mr.getTargetBranch() = " + mr.getTargetBranch());
@@ -468,16 +472,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         }
     }
 
-    protected void triggerBuildOpenMergeRequests(String json, com.dabsquared.gitlabjenkins.GitLabMergeRequest request, Job project, StaplerRequest req, StaplerResponse rsp) {
-        try {
-            LOGGER.info(json);
-            GitLabPushRequest testRequest = GitLabPushRequest.create(json);
-            LOGGER.info("getRef() = " + testRequest.getRef());
-            LOGGER.info("testRequest = "+testRequest.toString());
-        } catch (Exception exception) {
-            LOGGER.warning("Exception occurred with message: " + exception.getMessage());
-            exception.printStackTrace();
-        }
+    protected void triggerBuildOpenMergeRequests(com.dabsquared.gitlabjenkins.GitLabMergeRequest request, Job project, StaplerRequest req, StaplerResponse rsp) {
 
         Authentication old = SecurityContextHolder.getContext().getAuthentication();
         SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
@@ -504,6 +499,9 @@ public class GitLabWebHook implements UnprotectedRootAction {
                 }
             }
 
+            /**
+             * this triggers the request (technically)
+             */
             trigger.onPost(request);
 
             if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
@@ -531,7 +529,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         if ("update".equals(request.getObjectAttribute().getAction())) {
             LOGGER.log(Level.INFO, "Existing Merge Request, build will be triggered by buildOpenMergeRequests instead");
             LOGGER.info("Calling triggerBuildOpenMergeRequests");
-            this.triggerBuildOpenMergeRequests(json, request, project, req, rsp);
+            this.triggerBuildOpenMergeRequests(request, project, req, rsp);
             return;
         }
         if (request.getObjectAttribute().getLastCommit() != null) {
