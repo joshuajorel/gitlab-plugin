@@ -23,8 +23,8 @@ public class GitLabMergeRequest extends GitLabRequest {
             throw new IllegalArgumentException("payload should not be null");
         }
      
-        GitLabMergeRequest pushRequest =  Builder.INSTANCE.get().fromJson(payload, GitLabMergeRequest.class);
-        return pushRequest;
+        GitLabMergeRequest mergeRequest =  Builder.INSTANCE.get().fromJson(payload, GitLabMergeRequest.class);
+        return mergeRequest;
     }
     
     public GitLabMergeRequest() {
