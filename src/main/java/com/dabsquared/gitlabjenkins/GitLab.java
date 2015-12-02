@@ -12,12 +12,15 @@ public class GitLab {
 
   public GitlabAPI instance() {
     if (api == null) {
+        LOGGER.info("API uninitialized. Initializing.");
     	String token = GitLabPushTrigger.getDesc().getGitlabApiToken();
         String url = GitLabPushTrigger.getDesc().getGitlabHostUrl();
         boolean ignoreCertificateErrors = GitLabPushTrigger.getDesc().getIgnoreCertificateErrors();
         LOGGER.log(Level.FINE, "Connecting to Gitlab server ({0})", url);
         api = GitlabAPI.connect(url, token);
         api.ignoreCertificateErrors(ignoreCertificateErrors);
+    }else{
+        LOGGER.info("API already initialized");
     }
 
     return api;
