@@ -351,14 +351,8 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
 
     public void generatePushBuild(String json, Job project, StaplerRequest req, StaplerResponse rsp) {
-        LOGGER.info("Entered generatePushBuild - test new");
-        GitLabPushRequest request = new GitLabPushRequest();
-        try{
-            request = GitLabPushRequest.create(json);
-        } catch (Exception exception){
-            LOGGER.warning("Exception occurred with message: "+exception.getMessage());
-            exception.printStackTrace();
-        }
+        LOGGER.info("Entered generatePushBuild");
+        GitLabPushRequest request = GitLabPushRequest.create(json);
         String repositoryUrl = request.getRepository().getUrl();
         LOGGER.info("GitlabPushRequest URL: "+request.getRepository().getUrl());
         LOGGER.info("repositoryUrl: "+repositoryUrl);
@@ -485,6 +479,46 @@ public class GitLabWebHook implements UnprotectedRootAction {
         }
     }
 
+    protected void triggerBuildOpenMergeRequests(com.dabsquared.gitlabjenkins.GitLabMergeRequest request, Job project, StaplerRequest req, StaplerResponse rsp) {
+        Authentication old = SecurityContextHolder.getContext().getAuthentication();
+        SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
+        try {
+            LOGGER.info("Entered first try block");
+            GitLabPushTrigger trigger = null;
+            if (project instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) project;
+                for (Trigger t : p.getTriggers().values()) {
+
+                    if (t instanceof GitLabPushTrigger) {
+                        trigger = (GitLabPushTrigger) t;
+                    }
+                }
+            }
+
+            if (trigger == null) {
+                return;
+            }
+
+            if (trigger.getCiSkip() && request.getObjectAttribute().getLastCommit() != null) {
+                if (request.getObjectAttribute().getLastCommit().getMessage().contains("[ci-skip]")) {
+                    LOGGER.log(Level.INFO, "Skipping due to ci-skip.");
+                    return;
+                }
+            }
+
+            trigger.onPost(request);
+
+            if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
+                // Fetch and build open merge requests with the same source branch
+                LOGGER.info("Entering buildOpenMergeRequests");
+                buildOpenMergeRequests(trigger, request.getObjectAttribute().getSourceProjectId(), request.getObjectAttribute().getTargetBranch());
+            }
+        }catch(Exception exception){
+            LOGGER.warning("Exception occurred with message: "+exception.getMessage());
+            exception.printStackTrace();
+        }
+    }
+
     public void generateMergeRequestBuild(String json, Job project, StaplerRequest req, StaplerResponse rsp) {
         GitLabMergeRequest request = GitLabMergeRequest.create(json);
         if ("closed".equals(request.getObjectAttribute().getState())) {
@@ -497,7 +531,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         }
         if ("update".equals(request.getObjectAttribute().getAction())) {
             LOGGER.log(Level.INFO, "Existing Merge Request, build will be triggered by buildOpenMergeRequests instead");
-            LOGGER.info("Calling generatePushBuild");
+            LOGGER.info("Calling triggerBuildOpenMergeRequests");
             this.generatePushBuild(json, project, req, rsp);
             return;
         }
