@@ -401,6 +401,13 @@ public class GitLabWebHook implements UnprotectedRootAction {
         try {
             LOGGER.info("Entered buildOpenMergeRequests");
             GitLab api = new GitLab();
+            LOGGER.info("trigger open merge request on push: "+trigger.getTriggerOpenMergeRequestOnPush().toString());
+            LOGGER.info("project id: "+ projectId);
+            LOGGER.info("Looping all merge requests: ");
+            List<GitlabMergeRequest> testMR = api.instance().getOpenMergeRequests(projectId);
+            for(GitlabMergeRequest mergeRequest: testMR){
+                LOGGER.info(mergeRequest.getSourceBranch());
+            }
             List<GitlabMergeRequest> mergeRequests = api.instance().getOpenMergeRequests(projectId);
 
             LOGGER.info("Entering for loop");
