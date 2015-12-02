@@ -374,32 +374,24 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
 
 
                     LOGGER.log(Level.INFO, "Trying to get name and URL for job: {0}", job.getName());
-                    String testSourceRepoName = req.getObjectAttribute().getSource().getName();
-                    String testSourceRepoURL = req.getObjectAttribute().getSource().getSsh_url();
                     String sourceRepoProjectName = req.getObjectAttribute().getSource().getName();
                     String sourceRepoNamespace = req.getObjectAttribute().getSource().getNamespace();
-                    String sourceRepoName = sourceRepoNamespace+"/"+sourceRepoProjectName;
+                    String sourceRepoName = sourceRepoNamespace + "/" + sourceRepoProjectName;
                     String sourceRepoURL = req.getObjectAttribute().getSource().getSsh_url();
-                    LOGGER.info("source repo name before: " + sourceRepoName);
-                    LOGGER.info("source repo url before: " + sourceRepoURL);
-                    LOGGER.info("test source repo name before: " + testSourceRepoName);
-                    LOGGER.info("test source repo url before: " + testSourceRepoURL);
-                    LOGGER.info("Source project ID: " + req.getObjectAttribute().getSourceProjectId().toString());
-                    LOGGER.info("Source branch: " + req.getObjectAttribute().getSourceBranch());
-                    LOGGER.info("Namespace: " + req.getObjectAttribute().getSource().getNamespace());
-
-//                    if (!getDescriptor().getGitlabHostUrl().isEmpty()) {
-//                        // Get source repository if communication to Gitlab is possible
-//                        try {
-//                            sourceRepoName = req.getSourceProject(getDesc().getGitlab()).getPathWithNamespace();
-//                            sourceRepoURL = req.getSourceProject(getDesc().getGitlab()).getSshUrl();
-//                        } catch (IOException ex) {
-//                            LOGGER.info("source repo name: " + sourceRepoName);
-//                            LOGGER.info("source repo url: " + sourceRepoURL);
-//                            LOGGER.log(Level.WARNING, "Merge Request: Could not fetch source project''s data from Gitlab. '('{0}':' {1}')'", new String[]{ex.toString(), ex.getMessage()});
-//                        }
-//                    }
-
+                    /**
+                     *  unsure about this method
+                     if (!getDescriptor().getGitlabHostUrl().isEmpty()) {
+                     // Get source repository if communication to Gitlab is possible
+                     try {
+                     sourceRepoName = req.getSourceProject(getDesc().getGitlab()).getPathWithNamespace();
+                     sourceRepoURL = req.getSourceProject(getDesc().getGitlab()).getSshUrl();
+                     } catch (IOException ex) {
+                     LOGGER.info("source repo name: " + sourceRepoName);
+                     LOGGER.info("source repo url: " + sourceRepoURL);
+                     LOGGER.log(Level.WARNING, "Merge Request: Could not fetch source project''s data from Gitlab. '('{0}':' {1}')'", new String[]{ex.toString(), ex.getMessage()});
+                     }
+                     }
+                     */
                     values.put("gitlabSourceRepoName", new StringParameterValue("gitlabSourceRepoName", sourceRepoName));
                     values.put("gitlabSourceRepoURL", new StringParameterValue("gitlabSourceRepoURL", sourceRepoURL));
 
