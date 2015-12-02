@@ -74,8 +74,8 @@ import com.thoughtworks.xstream.mapper.MapperWrapper;
  * @author Daniel Brooks
  */
 public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
-	private static final Logger LOGGER = Logger.getLogger(GitLabPushTrigger.class.getName());
-	private boolean triggerOnPush = true;
+    private static final Logger LOGGER = Logger.getLogger(GitLabPushTrigger.class.getName());
+    private boolean triggerOnPush = true;
     private boolean triggerOnMergeRequest = true;
     private final String triggerOpenMergeRequestOnPush;
     private boolean ciSkip = true;
@@ -90,7 +90,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
 
     @DataBoundConstructor
     public GitLabPushTrigger(boolean triggerOnPush, boolean triggerOnMergeRequest, String triggerOpenMergeRequestOnPush, boolean ciSkip, boolean setBuildDescription, boolean addNoteOnMergeRequest, boolean addCiMessage, boolean addVoteOnMergeRequest, boolean acceptMergeRequestOnSuccess, boolean allowAllBranches,
-            String includeBranchesSpec, String excludeBranchesSpec) {
+                             String includeBranchesSpec, String excludeBranchesSpec) {
         this.triggerOnPush = triggerOnPush;
         this.triggerOnMergeRequest = triggerOnMergeRequest;
         this.triggerOpenMergeRequestOnPush = triggerOpenMergeRequestOnPush;
@@ -106,11 +106,11 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
     }
 
     public boolean getTriggerOnPush() {
-    	return triggerOnPush;
+        return triggerOnPush;
     }
 
     public boolean getTriggerOnMergeRequest() {
-    	return triggerOnMergeRequest;
+        return triggerOnMergeRequest;
     }
 
     public String getTriggerOpenMergeRequestOnPush() {
@@ -144,6 +144,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
     public boolean getCiSkip() {
         return ciSkip;
     }
+
     private boolean isBranchAllowed(final String branchName) {
         final List<String> exclude = DescriptorImpl.splitBranchSpec(this.getExcludeBranchesSpec());
         final List<String> include = DescriptorImpl.splitBranchSpec(this.getIncludeBranchesSpec());
@@ -188,29 +189,28 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
             getDescriptor().queue.execute(new Runnable() {
 
                 public void run() {
-            		LOGGER.log(Level.INFO, "{0} triggered for push.", job.getName());
+                    LOGGER.log(Level.INFO, "{0} triggered for push.", job.getName());
 
-            		String name = " #" + job.getNextBuildNumber();
-            		GitLabPushCause cause = createGitLabPushCause(req);
-            		Action[] actions = createActions(req);
+                    String name = " #" + job.getNextBuildNumber();
+                    GitLabPushCause cause = createGitLabPushCause(req);
+                    Action[] actions = createActions(req);
 
                     boolean scheduled;
 
-                    if (job instanceof AbstractProject<?,?>) {
+                    if (job instanceof AbstractProject<?, ?>) {
                         AbstractProject job_ap = (AbstractProject<?, ?>) job;
                         scheduled = job_ap.scheduleBuild(job_ap.getQuietPeriod(), cause, actions);
-                    }
-                    else {
+                    } else {
                         scheduled = scheduledJob.scheduleBuild(cause);
                     }
 
-            		if (scheduled) {
-            			LOGGER.log(Level.INFO, "GitLab Push Request detected in {0}. Triggering {1}", new String[]{job.getName(), name});
-            		} else {
-            			LOGGER.log(Level.INFO, "GitLab Push Request detected in {0}. Job is already in the queue.", job.getName());
-            		}
+                    if (scheduled) {
+                        LOGGER.log(Level.INFO, "GitLab Push Request detected in {0}. Triggering {1}", new String[]{job.getName(), name});
+                    } else {
+                        LOGGER.log(Level.INFO, "GitLab Push Request detected in {0}. Job is already in the queue.", job.getName());
+                    }
 
-                    if(addCiMessage) {
+                    if (addCiMessage) {
                         req.createCommitStatus(getDescriptor().getGitlab().instance(), "pending", Jenkins.getInstance().getRootUrl() + job.getUrl());
                     }
                 }
@@ -268,7 +268,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                     RevisionParameterAction revision;
 
                     revision = createPushRequestRevisionParameter(job, req);
-                    if (revision==null) {
+                    if (revision == null) {
                         return null;
                     }
 
@@ -285,7 +285,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
     public RevisionParameterAction createPushRequestRevisionParameter(Job<?, ?> job, GitLabPushRequest req) {
         RevisionParameterAction revision = null;
 
-        if (req.getLastCommit() !=null) {
+        if (req.getLastCommit() != null) {
             revision = new RevisionParameterAction(req.getLastCommit().getId());
         } else {
             if (req.getCheckout_sha() != null) {
@@ -302,7 +302,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
             } else {
                 LOGGER.log(Level.WARNING,
                         "unknown handled situation, dont know what revision to build for req {0} for job {1}",
-                         new Object[] {req, (job!=null?job.getFullName():null)});
+                        new Object[]{req, (job != null ? job.getFullName() : null)});
                 return null;
             }
         }
@@ -311,37 +311,36 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
 
     // executes when the Trigger receives a merge request
     public void onPost(final GitLabMergeRequest req) {
-    	if (triggerOnMergeRequest) {
-    		getDescriptor().queue.execute(new Runnable() {
+        if (triggerOnMergeRequest) {
+            getDescriptor().queue.execute(new Runnable() {
                 public void run() {
-	                LOGGER.log(Level.INFO, "{0} triggered for merge request.", job.getName());
-                  String name = " #" + job.getNextBuildNumber();
+                    LOGGER.log(Level.INFO, "{0} triggered for merge request.", job.getName());
+                    String name = " #" + job.getNextBuildNumber();
 
-	                GitLabMergeCause cause = createGitLabMergeCause(req);
-	                Action[] actions = createActions(req);
+                    GitLabMergeCause cause = createGitLabMergeCause(req);
+                    Action[] actions = createActions(req);
                     ParameterizedJobMixIn scheduledJob = new ParameterizedJobMixIn() {
-                      @Override
-                      protected Job asJob() {
-                          return job;
-                      }
+                        @Override
+                        protected Job asJob() {
+                            return job;
+                        }
                     };
 
                     boolean scheduled;
-                    if (job instanceof AbstractProject<?,?>) {
+                    if (job instanceof AbstractProject<?, ?>) {
                         AbstractProject job_ap = (AbstractProject<?, ?>) job;
                         scheduled = job_ap.scheduleBuild(job_ap.getQuietPeriod(), cause, actions);
-                    }
-                    else {
+                    } else {
                         scheduled = scheduledJob.scheduleBuild(cause);
                     }
 
                     if (scheduled) {
-	                    LOGGER.log(Level.INFO, "GitLab Merge Request detected in {0}. Triggering {1}", new String[]{job.getName(), name});
-	                } else {
-	                    LOGGER.log(Level.INFO, "GitLab Merge Request detected in {0}. Job is already in the queue.", job.getName());
-	                }
+                        LOGGER.log(Level.INFO, "GitLab Merge Request detected in {0}. Triggering {1}", new String[]{job.getName(), name});
+                    } else {
+                        LOGGER.log(Level.INFO, "GitLab Merge Request detected in {0}. Job is already in the queue.", job.getName());
+                    }
 
-                    if(addCiMessage) {
+                    if (addCiMessage) {
                         req.createCommitStatus(getDescriptor().getGitlab().instance(), "pending", Jenkins.getInstance().getRootUrl() + job.getUrl());
                     }
                 }
@@ -367,7 +366,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                         values.put("gitlabUserName", new StringParameterValue("gitlabUserName", req.getObjectAttribute().getAuthor().getName()));
                         values.put("gitlabUserEmail", new StringParameterValue("gitlabUserEmail", req.getObjectAttribute().getAuthor().getEmail()));
                     }
-                    values.put("gitlabMergeRequestTitle", new StringParameterValue("gitlabMergeRequestTitle",  req.getObjectAttribute().getTitle()));
+                    values.put("gitlabMergeRequestTitle", new StringParameterValue("gitlabMergeRequestTitle", req.getObjectAttribute().getTitle()));
                     values.put("gitlabMergeRequestId", new StringParameterValue("gitlabMergeRequestId", req.getObjectAttribute().getIid().toString()));
                     if (req.getObjectAttribute().getAssignee() != null) {
                         values.put("gitlabMergeRequestAssignee", new StringParameterValue("gitlabMergeRequestAssignee", req.getObjectAttribute().getAssignee().getName()));
@@ -379,25 +378,28 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                     String testSourceRepoURL = req.getObjectAttribute().getSource().getSsh_url();
                     String sourceRepoName = getDesc().getSourceRepoNameDefault(job);
                     String sourceRepoURL = getDesc().getSourceRepoURLDefault(job).toString();
-                    LOGGER.info("source repo name before: "+ sourceRepoName);
-                    LOGGER.info("source repo url before: "+ sourceRepoURL);
-                    LOGGER.info("test source repo name before: "+ testSourceRepoName);
-                    LOGGER.info("test source repo url before: "+ testSourceRepoURL);
+                    LOGGER.info("source repo name before: " + sourceRepoName);
+                    LOGGER.info("source repo url before: " + sourceRepoURL);
+                    LOGGER.info("test source repo name before: " + testSourceRepoName);
+                    LOGGER.info("test source repo url before: " + testSourceRepoURL);
+                    LOGGER.info("Source project ID: " + req.getObjectAttribute().getSourceProjectId().toString());
+                    LOGGER.info("Source branch: " + req.getObjectAttribute().getSourceBranch());
+                    LOGGER.info("Namespace: " + req.getObjectAttribute().getSource().getNamespace());
 
                     if (!getDescriptor().getGitlabHostUrl().isEmpty()) {
-                    	// Get source repository if communication to Gitlab is possible
-                    	try {
-                        	sourceRepoName = req.getSourceProject(getDesc().getGitlab()).getPathWithNamespace();
-                        	sourceRepoURL = req.getSourceProject(getDesc().getGitlab()).getSshUrl();
+                        // Get source repository if communication to Gitlab is possible
+                        try {
+                            sourceRepoName = req.getSourceProject(getDesc().getGitlab()).getPathWithNamespace();
+                            sourceRepoURL = req.getSourceProject(getDesc().getGitlab()).getSshUrl();
                         } catch (IOException ex) {
-                            LOGGER.info("source repo name: "+ sourceRepoName);
-                            LOGGER.info("source repo url: "+ sourceRepoURL);
-                        	LOGGER.log(Level.WARNING, "Merge Request: Could not fetch source project''s data from Gitlab. '('{0}':' {1}')'", new String[]{ex.toString(), ex.getMessage()});
+                            LOGGER.info("source repo name: " + sourceRepoName);
+                            LOGGER.info("source repo url: " + sourceRepoURL);
+                            LOGGER.log(Level.WARNING, "Merge Request: Could not fetch source project''s data from Gitlab. '('{0}':' {1}')'", new String[]{ex.toString(), ex.getMessage()});
                         }
                     }
 
                     values.put("gitlabSourceRepoName", new StringParameterValue("gitlabSourceRepoName", sourceRepoName));
-                	values.put("gitlabSourceRepoURL", new StringParameterValue("gitlabSourceRepoURL", sourceRepoURL));
+                    values.put("gitlabSourceRepoURL", new StringParameterValue("gitlabSourceRepoURL", sourceRepoURL));
 
                     List<ParameterValue> listValues = new ArrayList<ParameterValue>(values.values());
 
@@ -411,7 +413,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
 
 
             });
-    	}
+        }
     }
 
     private Map<String, ParameterValue> getDefaultParameters() {
@@ -427,14 +429,14 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
         return values;
     }
 
-    private void setBuildCauseInJob(Run run){
-        if(setBuildDescription){
-            Cause pcause= run.getCause(GitLabPushCause.class);
-            Cause mcause= run.getCause(GitLabMergeCause.class);
+    private void setBuildCauseInJob(Run run) {
+        if (setBuildDescription) {
+            Cause pcause = run.getCause(GitLabPushCause.class);
+            Cause mcause = run.getCause(GitLabMergeCause.class);
             String desc = null;
-            if(pcause!=null) desc = pcause.getShortDescription();
-            if(mcause!=null) desc = mcause.getShortDescription();
-            if(desc!=null && desc.length()>0){
+            if (pcause != null) desc = pcause.getShortDescription();
+            if (mcause != null) desc = mcause.getShortDescription();
+            if (desc != null && desc.length() > 0) {
                 try {
                     run.setDescription(desc);
                 } catch (IOException e) {
@@ -444,13 +446,13 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
         }
     }
 
-    public void onCompleted(Run run){
-        Cause mCause= run.getCause(GitLabMergeCause.class);
+    public void onCompleted(Run run) {
+        Cause mCause = run.getCause(GitLabMergeCause.class);
         if (mCause != null && mCause instanceof GitLabMergeCause) {
             onCompleteMergeRequest(run, (GitLabMergeCause) mCause);
         }
 
-        Cause pCause= run.getCause(GitLabPushCause.class);
+        Cause pCause = run.getCause(GitLabPushCause.class);
         if (pCause != null && pCause instanceof GitLabPushCause) {
             onCompletedPushRequest(run, (GitLabPushCause) pCause);
         }
@@ -458,12 +460,12 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
     }
 
     private void onCompletedPushRequest(Run run, GitLabPushCause cause) {
-        if(addCiMessage) {
-            cause.getPushRequest().createCommitStatus(this.getDescriptor().getGitlab().instance(), run.getResult()==Result.SUCCESS?"success":"failed", Jenkins.getInstance().getRootUrl() + run.getUrl());
+        if (addCiMessage) {
+            cause.getPushRequest().createCommitStatus(this.getDescriptor().getGitlab().instance(), run.getResult() == Result.SUCCESS ? "success" : "failed", Jenkins.getInstance().getRootUrl() + run.getUrl());
         }
     }
 
-    private void onCompleteMergeRequest(Run run,GitLabMergeCause cause){
+    private void onCompleteMergeRequest(Run run, GitLabMergeCause cause) {
         if (acceptMergeRequestOnSuccess && run.getResult() == Result.SUCCESS) {
             try {
                 GitlabProject proj = new GitlabProject();
@@ -476,7 +478,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                 e.printStackTrace();
             }
         }
-        if(addNoteOnMergeRequest) {
+        if (addNoteOnMergeRequest) {
             StringBuilder msg = new StringBuilder();
             if (run.getResult() == Result.SUCCESS) {
                 String icon = addVoteOnMergeRequest ? ":+1:" : ":white_check_mark:";
@@ -492,53 +494,53 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
             try {
                 GitlabProject proj = new GitlabProject();
                 proj.setId(cause.getMergeRequest().getObjectAttribute().getTargetProjectId());
-                org.gitlab.api.models.GitlabMergeRequest mr = this.getDescriptor().getGitlab().instance().getMergeRequest(proj,cause.getMergeRequest().getObjectAttribute().getId());
-                this.getDescriptor().getGitlab().instance().createNote(mr,msg.toString());
+                org.gitlab.api.models.GitlabMergeRequest mr = this.getDescriptor().getGitlab().instance().getMergeRequest(proj, cause.getMergeRequest().getObjectAttribute().getId());
+                this.getDescriptor().getGitlab().instance().createNote(mr, msg.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        if(addCiMessage) {
-            cause.getMergeRequest().createCommitStatus(this.getDescriptor().getGitlab().instance(), run.getResult()==Result.SUCCESS?"success":"failed", Jenkins.getInstance().getRootUrl() + run.getUrl());
+        if (addCiMessage) {
+            cause.getMergeRequest().createCommitStatus(this.getDescriptor().getGitlab().instance(), run.getResult() == Result.SUCCESS ? "success" : "failed", Jenkins.getInstance().getRootUrl() + run.getUrl());
         }
     }
 
     public void onStarted(Run run) {
         setBuildCauseInJob(run);
 
-        Cause mCause= run.getCause(GitLabMergeCause.class);
+        Cause mCause = run.getCause(GitLabMergeCause.class);
         if (mCause != null && mCause instanceof GitLabMergeCause) {
             onStartedMergeRequest(run, (GitLabMergeCause) mCause);
         }
 
-        Cause pCause= run.getCause(GitLabPushCause.class);
+        Cause pCause = run.getCause(GitLabPushCause.class);
         if (pCause != null && pCause instanceof GitLabPushCause) {
             onStartedPushRequest(run, (GitLabPushCause) pCause);
         }
     }
 
     private void onStartedPushRequest(Run run, GitLabPushCause cause) {
-        if(addCiMessage) {
+        if (addCiMessage) {
             cause.getPushRequest().createCommitStatus(this.getDescriptor().getGitlab().instance(), "running", Jenkins.getInstance().getRootUrl() + run.getUrl());
         }
     }
 
     private void onStartedMergeRequest(Run run, GitLabMergeCause cause) {
-        if(addCiMessage) {
+        if (addCiMessage) {
             cause.getMergeRequest().createCommitStatus(this.getDescriptor().getGitlab().instance(), "running", Jenkins.getInstance().getRootUrl() + run.getUrl());
         }
     }
 
     private String getSourceBranch(GitLabRequest req) {
-    	String result = null;
-    	if (req instanceof GitLabPushRequest) {
-    		result = ((GitLabPushRequest)req).getRef().replaceAll("refs/heads/", "");
-    	} else {
-    		result = ((GitLabMergeRequest)req).getObjectAttribute().getSourceBranch();
-    	}
+        String result = null;
+        if (req instanceof GitLabPushRequest) {
+            result = ((GitLabPushRequest) req).getRef().replaceAll("refs/heads/", "");
+        } else {
+            result = ((GitLabMergeRequest) req).getObjectAttribute().getSourceBranch();
+        }
 
-    	return result;
+        return result;
     }
 
     @Override
@@ -623,12 +625,12 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
         private final Map<String, List<String>> projectBranches = new HashMap<String, List<String>>();
 
         public DescriptorImpl() {
-        	load();
+            load();
         }
 
         @Override
         public boolean isApplicable(Item item) {
-            if(item instanceof Job && SCMTriggerItems.asSCMTriggerItem(item) != null
+            if (item instanceof Job && SCMTriggerItems.asSCMTriggerItem(item) != null
                     && item instanceof ParameterizedJobMixIn.ParameterizedJob) {
                 project = (Job) item;
                 return true;
@@ -639,21 +641,21 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
 
         @Override
         public String getDisplayName() {
-            if(project == null) {
+            if (project == null) {
                 return "Build when a change is pushed to GitLab, unknown URL";
             }
 
             final List<String> projectParentsUrl = new ArrayList<String>();
 
             try {
-				for (Object parent = project.getParent(); parent instanceof Item; parent = ((Item) parent)
-						.getParent()) {
-					projectParentsUrl.add(0, ((Item) parent).getName());
-				}
-			} catch (IllegalStateException e) {
-				return "Build when a change is pushed to GitLab, unknown URL";
-			}
-			final StringBuilder projectUrl = new StringBuilder();
+                for (Object parent = project.getParent(); parent instanceof Item; parent = ((Item) parent)
+                        .getParent()) {
+                    projectParentsUrl.add(0, ((Item) parent).getName());
+                }
+            } catch (IllegalStateException e) {
+                return "Build when a change is pushed to GitLab, unknown URL";
+            }
+            final StringBuilder projectUrl = new StringBuilder();
             projectUrl.append(Jenkins.getInstance().getRootUrl());
             projectUrl.append(GitLabWebHook.WEBHOOK_URL);
             projectUrl.append('/');
@@ -677,13 +679,13 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
         }
 
         public ListBoxModel doFillTriggerOpenMergeRequestOnPushItems(@QueryParameter String triggerOpenMergeRequestOnPush) {
-            return new ListBoxModel(new Option("Never", "never", triggerOpenMergeRequestOnPush.matches("never") ),
-                    new Option("On push to source branch", "source", triggerOpenMergeRequestOnPush.matches("source") ),
-                    new Option("On push to source or target branch", "both", triggerOpenMergeRequestOnPush.matches("both") ));
+            return new ListBoxModel(new Option("Never", "never", triggerOpenMergeRequestOnPush.matches("never")),
+                    new Option("On push to source branch", "source", triggerOpenMergeRequestOnPush.matches("source")),
+                    new Option("On push to source or target branch", "both", triggerOpenMergeRequestOnPush.matches("both")));
         }
 
         private List<String> getProjectBranches(final Job<?, ?> job) throws IOException, IllegalStateException {
-            if (projectBranches.containsKey(job.getName())){
+            if (projectBranches.containsKey(job.getName())) {
                 return projectBranches.get(job.getName());
             }
 
@@ -706,7 +708,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                     final List<GitlabProject> projects = getGitlab().instance().getProjects();
                     for (final GitlabProject gitlabProject : projects) {
                         if (gitlabProject.getSshUrl().equalsIgnoreCase(sourceRepository.toString())
-                            || gitlabProject.getHttpUrl().equalsIgnoreCase(sourceRepository.toString())) {
+                                || gitlabProject.getHttpUrl().equalsIgnoreCase(sourceRepository.toString())) {
                             //Get all branches of project
                             final List<GitlabBranch> branches = getGitlab().instance().getBranches(gitlabProject);
                             for (final GitlabBranch branch : branches) {
@@ -731,9 +733,9 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
         }
 
         private GitSCM getGitSCM(SCMTriggerItem item) {
-            if(item != null) {
-                for(SCM scm : item.getSCMs()) {
-                    if(scm instanceof GitSCM) {
+            if (item != null) {
+                for (SCM scm : item.getSCMs()) {
+                    if (scm instanceof GitSCM) {
                         return (GitSCM) scm;
                     }
                 }
@@ -754,14 +756,13 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
             try {
                 List<String> branches = this.getProjectBranches(job);
                 // show all suggestions for short strings
-                if (query.length() < 2){
+                if (query.length() < 2) {
                     values.addAll(branches);
-                }
-                else {
-                    for (String branch : branches){
-                      if (branch.toLowerCase().indexOf(query) > -1){
-                        values.add(branch);
-                      }
+                } else {
+                    for (String branch : branches) {
+                        if (branch.toLowerCase().indexOf(query) > -1) {
+                            values.add(branch);
+                        }
                     }
                 }
             } catch (final IllegalStateException ex) {
@@ -798,7 +799,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                 return FormValidation.warning(Messages.GitLabPushTrigger_CannotConnectToGitLab(ex.getMessage()));
             } catch (final IOException ex) {
                 return FormValidation.warning(project.hasPermission(Jenkins.ADMINISTER) ? ex : null,
-                                              Messages.GitLabPushTrigger_CannotCheckBranches());
+                        Messages.GitLabPushTrigger_CannotCheckBranches());
             }
 
             final Multimap<String, String> matchedSpecs = HashMultimap.create();
@@ -840,13 +841,13 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
             URIish url = null;
             SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
             GitSCM gitSCM = getGitSCM(item);
-            if(gitSCM == null) {
+            if (gitSCM == null) {
                 LOGGER.log(
                         Level.WARNING,
                         "Could not find GitSCM for project. Project = {1}, next build = {2}",
-                        new String[] {
+                        new String[]{
                                 project.getName(),
-                                String.valueOf(project.getNextBuildNumber()) });
+                                String.valueOf(project.getNextBuildNumber())});
                 throw new IllegalStateException("This project does not use git:" + project.getName());
             }
 
@@ -872,18 +873,18 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
             String result = null;
             SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
             GitSCM gitSCM = getGitSCM(item);
-            if(gitSCM == null) {
+            if (gitSCM == null) {
                 LOGGER.log(
                         Level.WARNING,
                         "Could not find GitSCM for project. Project = {1}, next build = {2}",
-                        new String[] {
+                        new String[]{
                                 project.getName(),
-                                String.valueOf(project.getNextBuildNumber()) });
+                                String.valueOf(project.getNextBuildNumber())});
                 throw new IllegalArgumentException("This project does not use git:" + project.getName());
             } else {
                 List<RemoteConfig> repositories = gitSCM.getRepositories();
-                if (!repositories.isEmpty()){
-                    result = repositories.get(repositories.size()-1).getName();
+                if (!repositories.isEmpty()) {
+                    result = repositories.get(repositories.size() - 1).getName();
                 }
             }
             return result;
@@ -906,12 +907,12 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
         }
 
         public FormValidation doTestConnection(@QueryParameter("gitlabHostUrl") final String hostUrl,
-                @QueryParameter("gitlabApiToken") final String token, @QueryParameter("ignoreCertificateErrors") final boolean ignoreCertificateErrors) throws IOException {
+                                               @QueryParameter("gitlabApiToken") final String token, @QueryParameter("ignoreCertificateErrors") final boolean ignoreCertificateErrors) throws IOException {
             try {
                 GitLab.checkConnection(token, hostUrl, ignoreCertificateErrors);
                 return FormValidation.ok("Success");
             } catch (IOException e) {
-                return FormValidation.error("Client error : "+e.getMessage());
+                return FormValidation.error("Client error : " + e.getMessage());
             }
         }
 
@@ -931,7 +932,7 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
         }
 
         public boolean getIgnoreCertificateErrors() {
-        	return ignoreCertificateErrors;
+            return ignoreCertificateErrors;
         }
 
         public static DescriptorImpl get() {
