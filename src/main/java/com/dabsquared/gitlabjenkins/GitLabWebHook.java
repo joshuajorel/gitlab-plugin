@@ -351,8 +351,14 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
 
     public void generatePushBuild(String json, Job project, StaplerRequest req, StaplerResponse rsp) {
-        LOGGER.info("Entered generatePushBuild");
-        GitLabPushRequest request = GitLabPushRequest.create(json);
+        LOGGER.info("Entered generatePushBuild - test new");
+        GitLabPushRequest request = new GitLabPushRequest();
+        try{
+            request = GitLabPushRequest.create(json);
+        } catch (Exception exception){
+            LOGGER.warning("Exception occurred with message: "+exception.getMessage());
+            exception.printStackTrace();
+        }
         String repositoryUrl = request.getRepository().getUrl();
         LOGGER.info("GitlabPushRequest URL: "+request.getRepository().getUrl());
         LOGGER.info("repositoryUrl: "+repositoryUrl);
