@@ -403,10 +403,12 @@ public class GitLabWebHook implements UnprotectedRootAction {
             GitLab api = new GitLab();
             List<GitlabMergeRequest> mergeRequests = api.instance().getOpenMergeRequests(projectId);
 
+            LOGGER.info("Entering for loop");
             for (org.gitlab.api.models.GitlabMergeRequest mr : mergeRequests) {
                 if (projectRef.endsWith(mr.getSourceBranch()) ||
                         (trigger.getTriggerOpenMergeRequestOnPush().equals("both") && projectRef.endsWith(mr.getTargetBranch()))) {
 
+                    LOGGER.info("Entered first if statement");
                     if (trigger.getCiSkip() && mr.getDescription().contains("[ci-skip]")) {
                         LOGGER.log(Level.INFO, "Skipping MR " + mr.getTitle() + " due to ci-skip.");
                         continue;
@@ -457,7 +459,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warning("failed to communicate with gitlab server to determine is this is an update for a merge request: "
+            LOGGER.warning("failed to communicate with gitlab server to determine if this is an update for a merge request: "
                     + e.getMessage());
             e.printStackTrace();
         }
