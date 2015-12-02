@@ -362,7 +362,6 @@ public class GitLabWebHook implements UnprotectedRootAction {
         Authentication old = SecurityContextHolder.getContext().getAuthentication();
         SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
         try {
-            LOGGER.info("Entered first try block");
             GitLabPushTrigger trigger = null;
             if (project instanceof ParameterizedJobMixIn.ParameterizedJob) {
                 ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) project;
@@ -387,10 +386,13 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
             trigger.onPost(request);
 
-            if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
-                // Fetch and build open merge requests with the same source branch
-                buildOpenMergeRequests(trigger, request.getProject_id(), request.getRef());
-            }
+            /**
+             * this may be unnecessary when triggering push builds
+             */
+//            if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
+//                // Fetch and build open merge requests with the same source branch
+//                buildOpenMergeRequests(trigger, request.getProject_id(), request.getRef());
+//            }
         } catch (Exception exception) {
             LOGGER.warning("Exception occurred with message: " + exception.getMessage());
             exception.printStackTrace();
@@ -504,6 +506,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
              */
             trigger.onPost(request);
 
+            //TODO investigate if this method is necessary
             if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
                 // Fetch and build open merge requests with the same source branch
                 buildOpenMergeRequests(trigger, request.getObjectAttribute().getSourceProjectId(), request.getObjectAttribute().getTargetBranch());
