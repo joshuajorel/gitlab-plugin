@@ -532,7 +532,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         if ("update".equals(request.getObjectAttribute().getAction())) {
             LOGGER.log(Level.INFO, "Existing Merge Request, build will be triggered by buildOpenMergeRequests instead");
             LOGGER.info("Calling triggerBuildOpenMergeRequests");
-            this.generatePushBuild(json, project, req, rsp);
+            this.triggerBuildOpenMergeRequests(request, project, req, rsp);
             return;
         }
         if (request.getObjectAttribute().getLastCommit() != null) {
