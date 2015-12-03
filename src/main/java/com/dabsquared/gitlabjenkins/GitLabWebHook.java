@@ -425,6 +425,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
                         LOGGER.log(Level.INFO, "Skipping MR " + mr.getTitle() + " due to ci-skip.");
                         continue;
                     }
+                    LOGGER.info(GitlabProject.URL + "/" + api.getProject(projectId).getId() + GitlabBranch.URL + mr.getSourceBranch());
                     GitlabBranch branch = api.getBranch(api.getProject(projectId), mr.getSourceBranch());
                     LastCommit lastCommit = new LastCommit();
                     lastCommit.setId(branch.getCommit().getId());
@@ -536,10 +537,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
             return;
         }
         if ("update".equals(request.getObjectAttribute().getAction())) {
-            LOGGER.log(Level.INFO, "Existing Merge Request, build will be triggered by buildOpenMergeRequests instead");
-            LOGGER.info("Calling triggerBuildOpenMergeRequests");
-            this.triggerBuildOpenMergeRequests(request, project, req, rsp);
-            return;
+            LOGGER.log(Level.INFO, "Existing Merge Request detected");
+//            LOGGER.info("Calling triggerBuildOpenMergeRequests");
+//            this.triggerBuildOpenMergeRequests(request, project, req, rsp);
+//            return;
         }
         if (request.getObjectAttribute().getLastCommit() != null) {
             Run mergeBuild = getBuildBySHA1(project, request.getObjectAttribute().getLastCommit().getId(), true);
