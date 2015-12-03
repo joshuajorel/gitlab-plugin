@@ -412,10 +412,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
                 LOGGER.info("merge request description: "+testMR.getDescription());
                 LOGGER.info("merge request string: "+testMR.toString());
             }
-            /**
-             * does not trigger because mergeRequests is empty
-             */
-            //TODO: investigate why mergeRequests is empty
+
             for (org.gitlab.api.models.GitlabMergeRequest mr : mergeRequests) {
                 LOGGER.info("mr.getSourceBranch() = " + mr.getSourceBranch());
                 LOGGER.info("mr.getTargetBranch() = " + mr.getTargetBranch());
@@ -481,51 +478,6 @@ public class GitLabWebHook implements UnprotectedRootAction {
         }
     }
 
-    protected void triggerBuildOpenMergeRequests(com.dabsquared.gitlabjenkins.GitLabMergeRequest request, Job project, StaplerRequest req, StaplerResponse rsp) {
-
-        Authentication old = SecurityContextHolder.getContext().getAuthentication();
-        SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
-        try {
-            GitLabPushTrigger trigger = null;
-            if (project instanceof ParameterizedJobMixIn.ParameterizedJob) {
-                ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) project;
-                for (Trigger t : p.getTriggers().values()) {
-
-                    if (t instanceof GitLabPushTrigger) {
-                        trigger = (GitLabPushTrigger) t;
-                    }
-                }
-            }
-
-            if (trigger == null) {
-                return;
-            }
-
-            if (trigger.getCiSkip() && request.getObjectAttribute().getLastCommit() != null) {
-                if (request.getObjectAttribute().getLastCommit().getMessage().contains("[ci-skip]")) {
-                    LOGGER.log(Level.INFO, "Skipping due to ci-skip.");
-                    return;
-                }
-            }
-
-            /**
-             * this triggers the request (technically)
-             */
-            trigger.onPost(request);
-
-            //TODO investigate if this method is necessary
-            if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
-                // Fetch and build open merge requests with the same source branch
-                buildOpenMergeRequests(trigger, request.getObjectAttribute().getSourceProjectId(), request.getObjectAttribute().getTargetBranch());
-            }
-        } catch (Exception exception) {
-            LOGGER.warning("Exception occurred with message: " + exception.getMessage());
-            exception.printStackTrace();
-        } finally {
-            SecurityContextHolder.getContext().setAuthentication(old);
-        }
-    }
-
     public void generateMergeRequestBuild(String json, Job project, StaplerRequest req, StaplerResponse rsp) {
         GitLabMergeRequest request = GitLabMergeRequest.create(json);
         if ("closed".equals(request.getObjectAttribute().getState())) {
@@ -538,9 +490,6 @@ public class GitLabWebHook implements UnprotectedRootAction {
         }
         if ("update".equals(request.getObjectAttribute().getAction())) {
             LOGGER.log(Level.INFO, "Existing Merge Request detected");
-//            LOGGER.info("Calling triggerBuildOpenMergeRequests");
-//            this.triggerBuildOpenMergeRequests(request, project, req, rsp);
-//            return;
         }
         if (request.getObjectAttribute().getLastCommit() != null) {
             Run mergeBuild = getBuildBySHA1(project, request.getObjectAttribute().getLastCommit().getId(), true);
