@@ -407,12 +407,6 @@ public class GitLabWebHook implements UnprotectedRootAction {
             LOGGER.info("trigger open merge request on push: " + trigger.getTriggerOpenMergeRequestOnPush().toString());
             List<GitlabMergeRequest> mergeRequests = api.getOpenMergeRequests(projectId);
 
-            LOGGER.info("printing values");
-            for(GitlabMergeRequest testMR: mergeRequests){
-                LOGGER.info("merge request description: "+testMR.getDescription());
-                LOGGER.info("merge request string: "+testMR.toString());
-            }
-
             for (org.gitlab.api.models.GitlabMergeRequest mr : mergeRequests) {
                 LOGGER.info("mr.getSourceBranch() = " + mr.getSourceBranch());
                 LOGGER.info("mr.getTargetBranch() = " + mr.getTargetBranch());
@@ -422,13 +416,29 @@ public class GitLabWebHook implements UnprotectedRootAction {
                         LOGGER.log(Level.INFO, "Skipping MR " + mr.getTitle() + " due to ci-skip.");
                         continue;
                     }
-                    LOGGER.info(GitlabProject.URL + "/" + api.getProject(projectId).getId() + GitlabBranch.URL + mr.getSourceBranch());
-                    GitlabBranch branch = api.getBranch(api.getProject(projectId), mr.getSourceBranch());
+
+
+                    /**
+                     * may not be necessary to trigger build open merge requests
+                     */
+                    LOGGER.info("GitlabProject.URL = " + GitlabProject.URL);
+                    LOGGER.info("GitlabBranch.URL = " + GitlabBranch.URL);
+                    LOGGER.info("GitlabCommit.URL = "+ GitlabCommit.URL);
+//                    GitlabBranch branch = api.getBranch(api.getProject(projectId), mr.getSourceBranch());
+//                    LastCommit lastCommit = new LastCommit();
+//                    lastCommit.setId(branch.getCommit().getId());
+//                    lastCommit.setMessage(branch.getCommit().getMessage());
+//                    lastCommit.setUrl(GitlabProject.URL + "/" + projectId + "/repository" + GitlabCommit.URL + "/"
+//                            + branch.getCommit().getId());
+
+                    List<GitlabCommit> commits = api.getCommits(mr);
                     LastCommit lastCommit = new LastCommit();
-                    lastCommit.setId(branch.getCommit().getId());
-                    lastCommit.setMessage(branch.getCommit().getMessage());
-                    lastCommit.setUrl(GitlabProject.URL + "/" + projectId + "/repository" + GitlabCommit.URL + "/"
-                            + branch.getCommit().getId());
+                    GitlabCommit last = commits.get(commits.size()-1);
+                    lastCommit.setId(last.getId());
+                    lastCommit.setMessage(last.getTitle());
+                    LOGGER.info("Last Commit Message: " + lastCommit.getMessage());
+                    lastCommit.setUrl(null);
+                    //lastCommit.setUrl(last.);
 
                     LOGGER.log(Level.FINE,
                             "Generating new merge trigger from "
@@ -439,8 +449,9 @@ public class GitLabWebHook implements UnprotectedRootAction {
                                     + mr.getAssignee().getName() + "\n author: "
                                     + mr.getAuthor().getName() + "\n id: "
                                     + mr.getId() + "\n iid: "
-                                    + mr.getIid() + "\n last commit: "
+                                    + mr.getIid() + "\n " + "last commit: "
                                     + lastCommit.getId() + "\n\n");
+
                     GitLabMergeRequest newReq = new GitLabMergeRequest();
                     newReq.setObject_kind("merge_request");
                     newReq.setObjectAttribute(new GitLabMergeRequest.ObjectAttributes());
@@ -463,7 +474,9 @@ public class GitLabWebHook implements UnprotectedRootAction {
                     SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
                     try {
                         trigger.onPost(newReq);
-                    } finally {
+                    } catch(Exception exception){
+                        LOGGER.info("Exception occured in buildOpenMergeRequests with message: "+exception.getMessage());
+                    } finally{
                         SecurityContextHolder.getContext().setAuthentication(old);
                     }
                 } else {
@@ -473,8 +486,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
         } catch (Exception e) {
             LOGGER.warning("failed to communicate with gitlab server to determine if this is an update for a merge request: "
                     + e.getMessage());
-            LOGGER.warning("Stacktrace: "+e.getStackTrace().toString());
-            e.printStackTrace();
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(stringWriter);
+            e.printStackTrace(printWriter);
+            LOGGER.warning("Stacktrace: "+stringWriter.toString());
         }
     }
 
