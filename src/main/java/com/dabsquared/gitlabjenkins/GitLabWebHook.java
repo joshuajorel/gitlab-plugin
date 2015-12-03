@@ -409,7 +409,8 @@ public class GitLabWebHook implements UnprotectedRootAction {
 
             LOGGER.info("printing values");
             for(GitlabMergeRequest testMR: mergeRequests){
-                LOGGER.info("merge request project id: "+testMR.getProjectId());
+                LOGGER.info("merge request description: "+testMR.getDescription());
+                LOGGER.info("merge request string: "+testMR.toString());
             }
             /**
              * does not trigger because mergeRequests is empty
