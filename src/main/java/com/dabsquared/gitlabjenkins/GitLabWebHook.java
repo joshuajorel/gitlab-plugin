@@ -474,6 +474,7 @@ public class GitLabWebHook implements UnprotectedRootAction {
         } catch (Exception e) {
             LOGGER.warning("failed to communicate with gitlab server to determine if this is an update for a merge request: "
                     + e.getMessage());
+            LOGGER.warning("Stacktrace: "+e.getStackTrace().toString());
             e.printStackTrace();
         }
     }

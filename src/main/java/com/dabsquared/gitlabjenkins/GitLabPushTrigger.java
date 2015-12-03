@@ -378,6 +378,9 @@ public class GitLabPushTrigger extends Trigger<Job<?, ?>> {
                     String sourceRepoNamespace = req.getObjectAttribute().getSource().getNamespace();
                     String sourceRepoName = sourceRepoNamespace + "/" + sourceRepoProjectName;
                     String sourceRepoURL = req.getObjectAttribute().getSource().getSsh_url();
+
+                    LOGGER.info("Source Project ID: "+req.getObjectAttribute().getSourceProjectId().toString());
+                    LOGGER.info("Target Project ID: "+req.getObjectAttribute().getTargetProjectId().toString());
                     /**
                      *  unsure about this method -> seems useless since sourceRepoName and sourceRepoURL should already have the needed values
                      if (!getDescriptor().getGitlabHostUrl().isEmpty()) {
