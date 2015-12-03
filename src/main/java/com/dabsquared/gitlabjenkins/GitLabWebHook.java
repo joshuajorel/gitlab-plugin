@@ -389,10 +389,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
             /**
              * this may be unnecessary when triggering push builds
              */
-//            if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
-//                // Fetch and build open merge requests with the same source branch
-//                buildOpenMergeRequests(trigger, request.getProject_id(), request.getRef());
-//            }
+            if (!trigger.getTriggerOpenMergeRequestOnPush().equals("never")) {
+                // Fetch and build open merge requests with the same source branch
+                buildOpenMergeRequests(trigger, request.getProject_id(), request.getRef());
+            }
         } catch (Exception exception) {
             LOGGER.warning("Exception occurred with message: " + exception.getMessage());
             exception.printStackTrace();
