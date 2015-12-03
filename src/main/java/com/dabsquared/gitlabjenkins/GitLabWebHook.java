@@ -407,6 +407,10 @@ public class GitLabWebHook implements UnprotectedRootAction {
             LOGGER.info("trigger open merge request on push: " + trigger.getTriggerOpenMergeRequestOnPush().toString());
             List<GitlabMergeRequest> mergeRequests = api.getOpenMergeRequests(projectId);
 
+            LOGGER.info("printing values");
+            for(GitlabMergeRequest testMR: mergeRequests){
+                LOGGER.info("merge request project id: "+testMR.getProjectId());
+            }
             /**
              * does not trigger because mergeRequests is empty
              */
