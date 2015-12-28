@@ -1,7 +1,7 @@
 gitlab-plugin
 =====================
 
-This plugin emulates Jenkins as a GitlabCI Web Service to be used with GitlabHQ.
+This plugin lets you use Jenkins with GitLab.
 
 Help Needed
 =====================
@@ -9,12 +9,12 @@ Help Needed
 
 Supported GitLab versions
 ======
-* 7.14.x
+* 7.14.x where it emulates Jenkins as a GitlabCI Web Service
+* 8.1.x and newer via the new commit status API that supports with external CI services like Jenkins
 
 Unsupported GitLab versions
 ======
 * 8.0.x - in this version, GitLab folded the GitLabCI functionality into core GitLab, and in doing so broke the ability for the plugin to give build status to GitLab. **Jenkins build status will never work with GitLab 8.0.x!**
-* 8.1.x - in this version, GitLab created a new public API to interface with external CI services like Jenkins. This plugin will be updated to support the new API; that work is incomplete at this time. See https://github.com/jenkinsci/gitlab-plugin/pull/127 for status.
 
 Current Supported GitLabCI Functions
 =====================
@@ -127,7 +127,11 @@ These include:
 * gitlabSourceRepoName
 * gitlabBranch (This is optional and can be used in shell scripts for the branch being built by the push request)
 * gitlabActionType (This is optional and can be used in shell scripts or other plugins to change the build behaviour. Possible values are PUSH or MERGE)
-
+* gitlabMergeRequestTitle
+* gitlabMergeRequestId
+* gitlabMergeRequestAssignee
+* gitlabUserName
+* gitlabUserEmail
 
 Help Needed
 =====================
